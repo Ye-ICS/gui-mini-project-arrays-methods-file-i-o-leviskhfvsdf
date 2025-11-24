@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+    "lib/**/*.jar",
+    "C:/Users/martinln/OneDrive - Limestone DSB/computer coding class g11/javafx-sdk-21.0.9/lib/jar.*"
+    ]
+}
