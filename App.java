@@ -11,72 +11,83 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.util.Scanner;
+import java.util.Stack;
+
 import com.fazecast.jSerialComm.SerialPort;
-import java.io.FileWriter;
-import java.io.IOException;
 import javafx.scene.transform.Rotate;
 
 public class App extends Application {
-    final static String userSerialPort = "COM13";
+
     public static void main(String[] args) {
         launch(args);
     }
-            Double rawDistance = 0.0;
-            int rawAngle = 0;
+
+    final static String userSerialPort = "COM13";
+    Double rawDistance = 0.0;
+    int rawAngle = 0;
 
     public void start(Stage stage) throws InterruptedException {
-
 
         SerialPort port = SerialPort.getCommPort(userSerialPort);
         port.setBaudRate(9600);
         port.openPort();
 
+        Scanner input = new Scanner(port.getInputStream());
+
         Pane col[] = new Pane[5];
         VBox proximityDisplay = new VBox();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < col.length; i++) {
             Pane light = new Pane();
+            
             col[i] = light;
+            light.setPrefSize(10,10);
             proximityDisplay.getChildren().addAll(light);
-            light.setStyle("-fx-background-color: #ff0101ff;");
-
             light.setOpacity(0.3);
-            light.setPrefSize(20,20);
+          
         }
         proximityDisplay.setTranslateY(7);
         proximityDisplay.setTranslateX(20);
 
-
         GridPane gridLayout = new GridPane();
-        HBox radarContainer = new HBox();
-        StackPane stack = new StackPane();
+        HBox radarGraphs = new HBox();
+        StackPane gridStack = new StackPane();
+        StackPane imageStack = new StackPane();
+        StackPane proximityStack = new StackPane();
+
         VBox legend = new VBox();
+        VBox contentBox = new VBox(10);
 
-        for (int i = 0; i < 5; i++) {
-            Label level = new Label("distance: " + i * 5 + " - " +  i * 10);
+        for (int i = 0; i < col.length; i++) {
+            Label level = new Label("distance: " + Utils.scale(i, 0, 4, 0, 200) + " - " +  Utils.scale(i + 1, 0, 4, 0, 200));
             legend.getChildren().add(level);
-
         }
         legend.setTranslateX(40);
         legend.setTranslateY(15);
         
         Pane grid[][] = new Pane[18][10];
-        for (int y = 0;y < grid.length; y++)
-         for (int x = 0; x < grid[0].length; x++) {
+        for (int y = 0; y < grid.length; y++)
+        for (int x = 0; x < grid[0].length; x++) {
        
             Pane tile = new Pane();
             grid[y][x] = tile;
             gridLayout.add(tile, y, x);
-            tile.setStyle("-fx-background-color: #ffffffff;");
+            tile.setStyle("-fx-background-color: #29302fff;");
             tile.setOpacity(0.3);
             tile.setPrefSize(11,11);
                     
          }
-        gridLayout.setTranslateX(0);
-        gridLayout.setTranslateY(5);
+        gridLayout.setTranslateX(5);
 
-        Scanner input = new Scanner(port.getInputStream());
-        
-        Label distanceLabel = new Label("- Distance:");
+        Label gridDistanceLabel = new Label("Distance");
+        gridDistanceLabel.setRotate(90);
+        gridDistanceLabel.setTranslateX(110);
+        gridDistanceLabel.setTranslateY(10);
+
+        Label gridAngleLabel = new Label("Angle");
+        gridAngleLabel.setTranslateY(65);
+        gridAngleLabel.setTranslateX(0);
+
+        Label distanceLabel = new Label("Distance:");
         Label angleLabel = new Label("Angle:");
         
         Image semi = new Image("file:C:\\Users\\martinln\\OneDrive - Limestone DSB\\computer coding class g11\\unit 2\\gui-mini-project-arrays-methods-file-i-o-leviskhfvsdf\\semiCircle.png");
@@ -93,16 +104,16 @@ public class App extends Application {
         rotate.setPivotY(0); // bottom edge
         rotate.setAngle(90);  // initial rotation angle
         displayBar.getTransforms().add(rotate);
-        
-        VBox contentBox = new VBox(10);
 
-        stack.getChildren().addAll(semiCircle, gridLayout, displayBar);
-        radarContainer.getChildren().addAll(stack, proximityDisplay, legend);
-        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarContainer);
+        proximityStack.getChildren().addAll(proximityDisplay, legend);
+        gridStack.getChildren().addAll(gridLayout, gridDistanceLabel, gridAngleLabel);
+        imageStack.getChildren().addAll(semiCircle, displayBar);
+        radarGraphs.getChildren().addAll(imageStack, gridStack, proximityStack); // HBox
+        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs); // VBox
 
-        Scene scene = new Scene(contentBox, 400, 200);
+        Scene scene = new Scene(contentBox, 600, 600);
         stage.setScene(scene);
-        stage.setTitle("Radar Graph 1.0");
+        stage.setTitle("Radar Graphs 1.0");
         stage.show();
         Thread.sleep(2500);
           
@@ -111,26 +122,33 @@ public class App extends Application {
             int distance = -1;
             int angle = -1;
 
-            while (input.hasNextLine()) {
-                try {   
-                        
-                    if (angle >= 0 || distance >= 0) {
-                        grid[angle][distance].setStyle("-fx-background-color: #ffffffff;");
+            while (true) {
+                try {           
+
+                    if (!input.hasNextLine()) {
+                        System.out.println("no line");
+                        Thread.sleep(500);
+                        continue;
                     }
 
-                    Thread.sleep(300);
-
-                     try {
-                        rawAngle = Integer.parseInt(input.nextLine());
-                    } catch (NumberFormatException e) {
-                        System.out.println(e);
+                    if (rawAngle == 0 || rawAngle == 180) {
+                        Utils.resetGrid(grid);
+                        System.out.println("Reseting");
                     }
+
+                    String line = input.nextLine();
+
                     try {
-                        rawDistance = Double.parseDouble(input.nextLine());
-                    } catch (NumberFormatException e) {
-                       System.out.println(e);
+                        rawAngle = Integer.parseInt(line);
+                        System.out.println("Angle = " + rawAngle);
+                    } catch (NumberFormatException e1) {
+                        try {
+                            rawDistance = Double.parseDouble(line);
+                            System.out.println("Distance = " + rawDistance);
+                        } catch (NumberFormatException e2) {
+                            System.out.println("Invalid input: " + line);
+                        }
                     }
-                    
                 
                     System.out.println("Distance received: " + rawDistance);
                     System.out.println("Angle received: " + rawAngle);
@@ -138,10 +156,12 @@ public class App extends Application {
 
                     // UI update on JavaFX Application Thread
                     Platform.runLater(() -> {
-                        distanceLabel.setText("Distance: " + rawDistance);
-                        angleLabel.setText("Angel: " + rawAngle);
+                        distanceLabel.setText("Distance:\t" + rawDistance);
+                        angleLabel.setText("Angle:\t" + rawAngle);
                     });
-    
+                    
+                    Utils.writeImportantPoints(rawDistance, rawAngle);
+
                     Double mappedDistance = Utils.scale(rawDistance, 0, 200, 0, grid[0].length - 1);
                     Double mappedAngle = Utils.scale(rawAngle, 0, 180, 0, grid.length - 1);
                     
@@ -149,20 +169,11 @@ public class App extends Application {
                     angle = (int) Math.round(mappedAngle);
                     
                     rotate.setAngle(-rawAngle + 90);
-                    Utils.proximityDisplay(col, distance);
 
-                    grid[angle][distance].setStyle("-fx-background-color: #000000ff;");
-                    Thread.sleep(300);
-                    if (rawDistance < 5) {
-                        try {
-                            FileWriter writer = new FileWriter("importantDataPoints.txt", true);
-                            writer.write("recieved Distance of close proximity: " + rawDistance + "cm ");
-                            writer.write(" angle of " + rawAngle + "\n");
-                            writer.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    Utils.proximityDisplay(col, rawDistance);
+
+                    grid[angle][distance].setStyle("-fx-background-color: #3cff00ff;");
+                    
                 } catch (Exception e) {
                     e.printStackTrace();
                     break;
@@ -172,4 +183,3 @@ public class App extends Application {
         serialThread.start();
     }
 }
-
