@@ -7,11 +7,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import java.util.Scanner;
-import java.util.Stack;
 
 import com.fazecast.jSerialComm.SerialPort;
 import javafx.scene.transform.Rotate;
@@ -22,6 +22,9 @@ public class App extends Application {
         launch(args);
     }
 
+    final static int proximityLenth = 5;
+    final static int gridCol = 18;
+    final static int gridRow = 10;
     final static String userSerialPort = "COM13";
     Double rawDistance = 0.0;
     int rawAngle = 0;
@@ -34,18 +37,21 @@ public class App extends Application {
 
         Scanner input = new Scanner(port.getInputStream());
 
-        Pane col[] = new Pane[5];
+        Pane col[] = new Pane[proximityLenth];
         VBox proximityDisplay = new VBox();
+        
         for (int i = 0; i < col.length; i++) {
             Pane light = new Pane();
             
             col[i] = light;
-            light.setPrefSize(10,10);
+            light.setStyle("-fx-background-color: #29302fff;");         
+            light.setMinSize(16, 16);
+            light.setMaxSize(16, 16);
             proximityDisplay.getChildren().addAll(light);
             light.setOpacity(0.3);
           
         }
-        proximityDisplay.setTranslateY(7);
+        proximityDisplay.setTranslateY(18);
         proximityDisplay.setTranslateX(20);
 
         GridPane gridLayout = new GridPane();
@@ -53,6 +59,14 @@ public class App extends Application {
         StackPane gridStack = new StackPane();
         StackPane imageStack = new StackPane();
         StackPane proximityStack = new StackPane();
+
+        Button game = new Button("Play Mini game");
+
+        game.setOnAction(event -> { 
+            Stage newStage = new Stage();
+            newStage.setResizable(false);
+            Utils.game(newStage);
+        });
 
         VBox legend = new VBox();
         VBox contentBox = new VBox(10);
@@ -64,54 +78,54 @@ public class App extends Application {
         legend.setTranslateX(40);
         legend.setTranslateY(15);
         
-        Pane grid[][] = new Pane[18][10];
-        for (int y = 0; y < grid.length; y++)
-        for (int x = 0; x < grid[0].length; x++) {
+        Pane grid[][] = new Pane[gridCol][gridRow];
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[0].length; x++) {
        
-            Pane tile = new Pane();
-            grid[y][x] = tile;
-            gridLayout.add(tile, y, x);
-            tile.setStyle("-fx-background-color: #29302fff;");
-            tile.setOpacity(0.3);
-            tile.setPrefSize(11,11);
+                Pane tile = new Pane();
+                grid[y][x] = tile;
+                gridLayout.add(tile, y, x);
+                tile.setStyle("-fx-background-color: #29302fff;");
+                tile.setOpacity(0.3);
+                tile.setPrefSize(11,11);
                     
-         }
+            }
+        }
         gridLayout.setTranslateX(5);
 
         Label gridDistanceLabel = new Label("Distance");
         gridDistanceLabel.setRotate(90);
-        gridDistanceLabel.setTranslateX(110);
-        gridDistanceLabel.setTranslateY(10);
+        gridDistanceLabel.setTranslateX(grid.length * 6.5);
 
         Label gridAngleLabel = new Label("Angle");
-        gridAngleLabel.setTranslateY(65);
-        gridAngleLabel.setTranslateX(0);
+        gridAngleLabel.setTranslateY(grid[0].length * 6);
 
         Label distanceLabel = new Label("Distance:");
         Label angleLabel = new Label("Angle:");
         
-        Image semi = new Image("file:C:\\Users\\martinln\\OneDrive - Limestone DSB\\computer coding class g11\\unit 2\\gui-mini-project-arrays-methods-file-i-o-leviskhfvsdf\\semiCircle.png");
+        Image semi = new Image("/semiCircle.png");
         ImageView semiCircle = new ImageView(semi);
         semiCircle.setFitWidth(200);
         semiCircle.setPreserveRatio(true);
 
-        Image bar = new Image("file:C:\\Users\\martinln\\OneDrive - Limestone DSB\\computer coding class g11\\unit 2\\gui-mini-project-arrays-methods-file-i-o-leviskhfvsdf\\blackbox.jpeg");
+        Image bar = new Image("/blackbox.jpeg");
         ImageView displayBar = new ImageView(bar);
         displayBar.setFitWidth(5);
         displayBar.setFitHeight(100);
         Rotate rotate = new Rotate();
-        rotate.setPivotX(displayBar.getFitWidth());                  // left edge
-        rotate.setPivotY(0); // bottom edge
+        rotate.setPivotX(displayBar.getFitWidth());               
         rotate.setAngle(90);  // initial rotation angle
         displayBar.getTransforms().add(rotate);
+
+        proximityStack.setTranslateX(20);
 
         proximityStack.getChildren().addAll(proximityDisplay, legend);
         gridStack.getChildren().addAll(gridLayout, gridDistanceLabel, gridAngleLabel);
         imageStack.getChildren().addAll(semiCircle, displayBar);
         radarGraphs.getChildren().addAll(imageStack, gridStack, proximityStack); // HBox
-        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs); // VBox
+        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs, game); // VBox
 
-        Scene scene = new Scene(contentBox, 600, 600);
+        Scene scene = new Scene(contentBox, 600, 200);
         stage.setScene(scene);
         stage.setTitle("Radar Graphs 1.0");
         stage.show();
@@ -126,13 +140,13 @@ public class App extends Application {
                 try {           
 
                     if (!input.hasNextLine()) {
-                        System.out.println("no line");
+                        System.out.println("no line");   // retrys if no line is found
                         Thread.sleep(500);
                         continue;
                     }
 
                     if (rawAngle == 0 || rawAngle == 180) {
-                        Utils.resetGrid(grid);
+                        Utils.resetGrid(grid);                  // clears 2d grid oon angle 180 and 0
                         System.out.println("Reseting");
                     }
 
@@ -140,7 +154,7 @@ public class App extends Application {
 
                     try {
                         rawAngle = Integer.parseInt(line);
-                        System.out.println("Angle = " + rawAngle);
+                        System.out.println("Angle = " + rawAngle);   // gets angle and try to convert it
                     } catch (NumberFormatException e1) {
                         try {
                             rawDistance = Double.parseDouble(line);
