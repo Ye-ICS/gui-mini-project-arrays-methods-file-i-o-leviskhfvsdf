@@ -1,11 +1,18 @@
 import java.io.FileWriter;
 import java.io.IOException;
-
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 public class Utils {
 
@@ -21,28 +28,13 @@ public class Utils {
         return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
 
-    static void proximityDisplay(Pane col[], double rawDistance) {
-
-        int distance = (int) Math.round(scale(rawDistance, 0, 200, 0,col.length));
-
-        for (int i = 0; i < col.length; i++) {
-            col[i].setStyle("-fx-background-color: #2b2b2bff;");
-        }
-        
-        for (int i = col.length; i < col.length; i--){
-            if (distance == i ) {
-                col[i].setStyle("-fx-background-color: #11ff11ff;");
-            }
-        }
-    }
-
     /**
      * checks distance to determine if proximity is importantly close
      * @param rawDistance 
      * @param rawAngle
      */
     static void writeImportantPoints(double rawDistance, int rawAngle) {
-        if (rawDistance < 3) {
+        if (rawDistance < 4) {
             try {
                 FileWriter writer = new FileWriter("importantDataPoints.txt", true);
                 writer.write("recieved Distance of close proximity: " + rawDistance + "cm ");
@@ -130,5 +122,26 @@ public class Utils {
         } else {
             grid[r][c].setStyle("-fx-background-color: " + on + ";");
         }
+    }
+
+    static void file(Stage stage) throws FileNotFoundException {
+
+        VBox contentBox = new VBox();
+        ScrollPane scroll = new ScrollPane();
+       
+        File file = new File("importantDataPoints.txt");
+        Scanner sc = new Scanner(file);
+        
+        while (sc.hasNext()) {
+            Label strand = new Label(sc.nextLine());
+            contentBox.getChildren().add(strand);
+        }
+        
+        contentBox.setAlignment(Pos.TOP_CENTER);
+        scroll.setContent(contentBox);
+        Scene scene = new Scene(scroll, 350, 500);
+        stage.setScene(scene);
+        stage.setTitle("Proximity Data");
+        stage.show();
     }
 }
