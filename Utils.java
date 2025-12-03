@@ -34,10 +34,10 @@ public class Utils {
      * @param rawAngle
      */
     static void writeImportantPoints(double rawDistance, int rawAngle) {
-        if (rawDistance < 4) {
+        if (rawDistance < 4) { // checks for close range distances only
             try {
                 FileWriter writer = new FileWriter("importantDataPoints.txt", true);
-                writer.write("recieved Distance of close proximity: " + rawDistance + "cm ");
+                writer.write("recieved Distance of close proximity: " + rawDistance + "cm "); // sends found distance and angle
                 writer.write(" angle of " + rawAngle + "\n");
                 writer.close();
             } catch (IOException e) {
@@ -64,11 +64,11 @@ public class Utils {
      */
     static void game(Stage stage) {
 
-        final double fillChance = 0.7;
-        int[] digets = {109, 97, 100, 101, 32, 98, 121, 32, 108, 101, 118, 105,}; StringBuilder b = new StringBuilder(); for (int num : digets) { b.append((char) num);}  String d = b.toString(); System.out.println("\n\n"+d);
+        final double fillChance = 0.7; // chance a cell will start filled.
+        int[] digets = {109, 97, 100, 101, 32, 98, 121, 32, 108, 101, 118, 105,}; StringBuilder b = new StringBuilder(); for (int num : digets) { b.append((char) num);}  String d = b.toString(); System.out.println("\n\n"+d); // personal patent
         
             
-        String onColor = "#ff0000ff"; // red
+        String onColor = "#ff0000ff";
         String midColor = "#b823b0ff";
         String offColor = "#000000ff";
         GridPane contentBox = new GridPane();
@@ -77,7 +77,7 @@ public class Utils {
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[0].length; x++) {
                 
-                double rand = Math.random();
+                double rand = Math.random(); // random num between 1 and 0
                 Button button = new Button();
                 grid[y][x] = button;
                 contentBox.add(button, y, x);
@@ -89,7 +89,7 @@ public class Utils {
                 button.setOpacity(0.3);
                 button.setPrefSize(40, 40);
 
-                if (rand > fillChance) {
+                if (rand > fillChance) { 
                     toggle(grid, row, col, onColor, offColor, midColor);
                 }
 
@@ -133,10 +133,10 @@ public class Utils {
         Scanner sc = new Scanner(file);
         
         while (sc.hasNext()) {
-            Label strand = new Label(sc.nextLine());
+            Label strand = new Label(sc.nextLine()); // reads contents of file and puts them in a scrollPane
             contentBox.getChildren().add(strand);
         }
-        
+
         contentBox.setAlignment(Pos.TOP_CENTER);
         scroll.setContent(contentBox);
         Scene scene = new Scene(scroll, 350, 500);

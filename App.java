@@ -22,9 +22,9 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    final static int gridCol = 10;  
+    final static int gridCol = 10;  // dimentions of grid
     final static int gridRow = 10;
-    final static String userSerialPort = "COM13";   // serial port
+    final static String userSerialPort = "COM10";   // serial port
     Double rawDistance = 0.0;
     int rawAngle = 0;
 
@@ -46,7 +46,7 @@ public class App extends Application {
         Button openFile = new Button("read files");
 
         
-        openFile.setOnAction(event -> {
+        openFile.setOnAction(event -> {  // file window
             Stage newStage = new Stage();
             newStage.setResizable(false);    
             try {
@@ -55,8 +55,8 @@ public class App extends Application {
                 System.out.println(e);
             }
         });
-         
-        game.setOnAction(event -> { 
+
+        game.setOnAction(event -> {  // game window
             Stage newStage = new Stage();
             newStage.setResizable(false);
             Utils.game(newStage);
@@ -64,17 +64,17 @@ public class App extends Application {
 
         VBox contentBox = new VBox(10);
 
-        Image semi = new Image("/semiCircle.png");
+        Image semi = new Image("/semiCircle.png");  //background image for grid
         ImageView semiCircle = new ImageView(semi);
         semiCircle.setFitWidth(200);
         semiCircle.setPreserveRatio(true);
 
-        Image bar = new Image("/blackbox.jpeg");
+        Image bar = new Image("/blackbox.jpeg");   // rotating bar for image
         ImageView displayBar = new ImageView(bar);
         displayBar.setFitWidth(5);
         displayBar.setFitHeight(100);
         Rotate rotate = new Rotate();
-        rotate.setPivotX(displayBar.getFitWidth());               
+        rotate.setPivotX(displayBar.getFitWidth());    // sets pivot point to the top of the bar         
         rotate.setAngle(90);  // initial rotation angle
         displayBar.getTransforms().add(rotate);
 
@@ -83,7 +83,7 @@ public class App extends Application {
         gridLayout.prefWidthProperty().bind(semiCircle.fitWidthProperty());
         gridLayout.prefHeightProperty().bind(semiCircle.fitWidthProperty().multiply(0.5));
 
-        for (int y = 0; y < grid.length; y++) {
+        for (int y = 0; y < grid.length; y++) { // loop for 2d grid array. goes through each cell
             for (int x = 0; x < grid[0].length; x++) {
        
                 Pane tile = new Pane();
@@ -100,8 +100,8 @@ public class App extends Application {
         Label distanceLabel = new Label("Distance:");
         Label angleLabel = new Label("Angle:");
 
-        imageStack.getChildren().addAll(semiCircle, displayBar);
-        gridAndImage.getChildren().addAll(imageStack, gridLayout);
+        imageStack.getChildren().addAll(semiCircle, displayBar); // stackPane
+        gridAndImage.getChildren().addAll(imageStack, gridLayout); // stackPane
         gridAndImage.setMaxHeight(100);
         gridAndImage.setMinHeight(100);
 
@@ -111,20 +111,21 @@ public class App extends Application {
         contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs, game, openFile); // VBox
         contentBox.setAlignment(Pos.CENTER);
         
-        Scene scene = new Scene(contentBox, 500, 250);
+        Scene scene = new Scene(contentBox, 500, 250); // window dimentions
         stage.setScene(scene);
         stage.setTitle("Radar Graphs 1.0");
         stage.show();
-      
-          
+        Thread.sleep(2000);
+        
         Thread serialThread = new Thread(() -> {
 
             int distance = -1;
             int angle = -1;
 
-            while (true) {
+            while (true) { // scanner loop
                 try {           
                     Thread.sleep(400);
+                    
 
                     if (!input.hasNextLine()) {
                         System.out.println("no line");   // retrys if no line is found
@@ -155,13 +156,13 @@ public class App extends Application {
                     System.out.println("Angle received: " + rawAngle);
 
 
-                    // UI update on JavaFX Application Thread
+                    // UI update on JavaFX main Thread
                     Platform.runLater(() -> {
-                        distanceLabel.setText("Distance:\t" + rawDistance);
+                        distanceLabel.setText("Distance:\t" + rawDistance); 
                         angleLabel.setText("Angle:\t" + rawAngle);
                     });
                     
-                    Utils.writeImportantPoints(rawDistance, rawAngle);
+                    Utils.writeImportantPoints(rawDistance, rawAngle); // sends distance and angle to a fileWriter 
 
                     Double mappedDistance = Utils.scale(rawDistance, 0, 200, 0, grid[0].length - 1);
                     Double mappedAngle = Utils.scale(rawAngle, 0, 180, 0, grid.length - 1);
@@ -169,9 +170,9 @@ public class App extends Application {
                     distance = (int) Math.round(mappedDistance);
                     angle = (int) Math.round(mappedAngle);
                     
-                    rotate.setAngle(-rawAngle + 90);
+                    rotate.setAngle(-rawAngle + 90); // rotates the bar to the angle of the servo motor
 
-                    grid[angle][distance].setStyle("-fx-background-color: #3cff00ff;");
+                    grid[angle][distance].setStyle("-fx-background-color: #3cff00ff;"); // highlights objects positions within the grid
                     
                 } catch (Exception e) {
                     e.printStackTrace();
