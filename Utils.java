@@ -1,12 +1,11 @@
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Time;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -27,7 +26,7 @@ public class Utils {
     static double scale(double value, double inMin, double inMax, double outMin, double outMax) {
         return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     }
-
+    
     /**
      * checks distance to determine if proximity is importantly close
      * @param rawDistance 
@@ -41,7 +40,7 @@ public class Utils {
                 writer.write(" angle of " + rawAngle + "\n");
                 writer.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println(e);
             }
         }
     }
@@ -53,82 +52,11 @@ public class Utils {
         }
     }
 
-
-
-
-// side game
-
-    /**
-     * runs a game on given stage
-     * @param stage 
-     */
-    static void game(Stage stage) {
-
-        final double fillChance = 0.7; // chance a cell will start filled.
-        int[] digets = {109, 97, 100, 101, 32, 98, 121, 32, 108, 101, 118, 105,}; StringBuilder b = new StringBuilder(); for (int num : digets) { b.append((char) num);}  String d = b.toString(); System.out.println("\n\n"+d); // personal patent
-        
-            
-        String onColor = "#ff0000ff";
-        String midColor = "#b823b0ff";
-        String offColor = "#000000ff";
-        GridPane contentBox = new GridPane();
-
-        Button grid[][] = new Button[5][5];
-        for (int y = 0; y < grid.length; y++) {
-            for (int x = 0; x < grid[0].length; x++) {
-                
-                double rand = Math.random(); // random num between 1 and 0
-                Button button = new Button();
-                grid[y][x] = button;
-                contentBox.add(button, y, x);
-
-                final int row = y;
-                final int col = x;
-
-                button.setStyle("-fx-background-color: #000000ff;");
-                button.setOpacity(0.3);
-                button.setPrefSize(40, 40);
-
-                if (rand > fillChance) { 
-                    toggle(grid, row, col, onColor, offColor, midColor);
-                }
-
-                button.setOnAction(event -> {
-            
-                    toggle(grid, row, col, onColor, offColor, midColor);     // center
-                    if (row > 0) toggle(grid, row - 1, col, onColor, offColor, midColor); // up
-                    if (row < 4) toggle(grid, row + 1, col, onColor, offColor, midColor); // down
-                    if (col > 0) toggle(grid, row, col - 1, onColor, offColor, midColor); // left
-                    if (col < 4)  toggle(grid, row, col + 1, onColor, offColor, midColor); // right
-                });     
-            }
-        }
-        contentBox.setTranslateX(5);
-        Scene scene = new Scene(contentBox, 210, 210);
-        stage.setScene(scene);
-        stage.setTitle("Lights out");
-        stage.show();
-        
-    }
-
-    static void toggle(Button[][] grid, int r, int c, String on, String off, String mid) {
-
-        String format = grid[r][c].getStyle().replace(" ", "");
-
-        if (format.equals("-fx-background-color:" + on + ";")) {
-            grid[r][c].setStyle("-fx-background-color: " + mid + ";");
-        } else if (format.equals("-fx-background-color:" + mid + ";")) {
-            grid[r][c].setStyle("-fx-background-color: " + off + ";");
-        } else {
-            grid[r][c].setStyle("-fx-background-color: " + on + ";");
-        }
-    }
-
     static void file(Stage stage) throws FileNotFoundException {
 
         VBox contentBox = new VBox();
         ScrollPane scroll = new ScrollPane();
-       
+        
         File file = new File("importantDataPoints.txt");
         Scanner sc = new Scanner(file);
         
@@ -137,7 +65,7 @@ public class Utils {
             contentBox.getChildren().add(strand);
         }
 
-        contentBox.setAlignment(Pos.TOP_CENTER);
+        contentBox.setAlignment(Pos.TOP_CENTER); // good alignment for scrollPane
         scroll.setContent(contentBox);
         Scene scene = new Scene(scroll, 350, 500);
         stage.setScene(scene);

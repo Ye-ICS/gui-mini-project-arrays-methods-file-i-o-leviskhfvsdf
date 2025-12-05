@@ -22,10 +22,13 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    final static int radarSize = 200; // dimention of grid and image {cant go past 200}
-    final static int gridCol = 10;  // amount of cells
+
+    final static int serialDelay = 710; // millis
+    final static int radarSize = 200; // dimention of grid and image
+
+    final static int gridCol = 10;  // amount of cells in the grid
     final static int gridRow = 10;
-    final static String userSerialPort = "COM10";   // serial port
+    final static String userSerialPort = "COM13";   // serial port
 
     Double rawDistance = 0.0;
     int rawAngle = 0;
@@ -43,11 +46,8 @@ public class App extends Application {
         StackPane gridAndImage = new StackPane();
         StackPane imageStack = new StackPane();
 
-        Button game = new Button("Play Mini game");
+        Button openFile = new Button("read data");
 
-        Button openFile = new Button("read files");
-
-        
         openFile.setOnAction(event -> {  // file window
             Stage newStage = new Stage();
             newStage.setResizable(false);    
@@ -58,29 +58,22 @@ public class App extends Application {
             }
         });
 
-        game.setOnAction(event -> {  // game window
-            Stage newStage = new Stage();
-            newStage.setResizable(false);
-            Utils.game(newStage);
-        });
-
         VBox contentBox = new VBox(10);
 
-        Image semi = new Image("/semiCircle.png");  //background image for grid
-        ImageView semiCircle = new ImageView(semi);
+        Image obj = new Image("/semiCircle.png");  //background image for grid
+        ImageView semiCircle = new ImageView(obj);
         semiCircle.setFitWidth(radarSize);
         semiCircle.setFitHeight(radarSize / 2); // hight should be half of width 
-        semiCircle.setPreserveRatio(true);
        
 
-        Image bar = new Image("/blackbox.jpeg");   // rotating bar for image
-        ImageView displayBar = new ImageView(bar);
+        Image img = new Image("/blackbox.jpeg");   // rotating bar for image
+        ImageView displayBar = new ImageView(img);
         displayBar.setFitWidth(5);
         displayBar.setFitHeight(radarSize / 2);
         Rotate rotate = new Rotate();
         rotate.setPivotX(displayBar.getFitWidth());    // sets pivot point to the top of the bar         
         rotate.setAngle(90);  // initial rotation angle
-        displayBar.getTransforms().add(rotate);
+        displayBar.getTransforms().add(rotate); // adds rotate properties to displayBar
 
         imageStack.getChildren().addAll(semiCircle, displayBar); // stackPane
         imageStack.setAlignment(Pos.CENTER);
@@ -94,9 +87,9 @@ public class App extends Application {
        
                 Pane tile = new Pane();
                 grid[y][x] = tile;
-                gridLayout.add(tile, y, x);
+                gridLayout.add(tile, y, x); // placement of the tiles
                 tile.setStyle("-fx-background-color: #29302fff;");
-                tile.setOpacity(0.3);
+                tile.setOpacity(0.3); // to see the image behind the tiles
                 
                 tile.prefWidthProperty().bind(gridLayout.prefWidthProperty().divide(gridCol)); // tile should be gridLayouts width divided by amount of collumns
                 tile.prefHeightProperty().bind(gridLayout.prefHeightProperty().divide(gridRow));
@@ -108,29 +101,25 @@ public class App extends Application {
         Label angleLabel = new Label("Angle:");
 
         gridAndImage.getChildren().addAll(imageStack, gridLayout); // stackPane
-        gridAndImage.setMaxHeight(100);
-        gridAndImage.setMinHeight(100);
 
         radarGraphs.getChildren().addAll(gridAndImage); // HBox
         radarGraphs.setAlignment(Pos.CENTER);
 
-        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs, game, openFile); // VBox
+        contentBox.getChildren().addAll(distanceLabel, angleLabel, radarGraphs, openFile); // VBox
         contentBox.setAlignment(Pos.CENTER);
         
         Scene scene = new Scene(contentBox, 500, 250); // window dimentions
         stage.setScene(scene);
         stage.setTitle("Radar Graphs 1.0");
         stage.show();
-        Thread.sleep(2000);
+        Thread.sleep(1000);
         
         Thread serialThread = new Thread(() -> {
 
-            int distance = -1;
-            int angle = -1;
 
             while (true) { // scanner loop
                 try {           
-                    Thread.sleep(400);
+                    Thread.sleep(serialDelay);
                     
 
                     if (!input.hasNextLine()) {
@@ -138,47 +127,48 @@ public class App extends Application {
                         Thread.sleep(500);
                         continue;
                     }
-
-                    if (rawAngle == 0 || rawAngle == 180) {
+                        
+                    String intLine = input.nextLine();
+                    String doubleLine = input.nextLine();
+                    
+                    if (rawAngle <= 0 || rawAngle >= 180) {
                         Utils.resetGrid(grid);                  // clears 2d grid oon angle 180 and 0
                         System.out.println("Reseting");
                     }
 
-                    String line = input.nextLine();
-
                     try {
-                        rawAngle = Integer.parseInt(line);
+                        rawAngle = Integer.parseInt(intLine);
+                        rawDistance = Double.parseDouble(doubleLine);
                         System.out.println("Angle = " + rawAngle);   // gets angle and try to convert it
+                        System.out.println("Distance = " + rawDistance);
                     } catch (NumberFormatException e1) {
                         try {
-                            rawDistance = Double.parseDouble(line);
+                            rawDistance = Double.parseDouble(intLine);
+                            rawAngle = Integer.parseInt(doubleLine);
+                            System.out.println("Angle = " + rawAngle);   
                             System.out.println("Distance = " + rawDistance);
                         } catch (NumberFormatException e2) {
-                            System.out.println("Invalid input: " + line);
+                            System.out.println("Invalid input: " + intLine);
                         }
                     }
 
-                    System.out.println("Distance received: " + rawDistance);
-                    System.out.println("Angle received: " + rawAngle);
-
-
-                    // UI update on JavaFX main Thread
-                    Platform.runLater(() -> {
-                        distanceLabel.setText("Distance:\t" + rawDistance); 
-                        angleLabel.setText("Angle:\t" + rawAngle);
-                    });
                     
                     Utils.writeImportantPoints(rawDistance, rawAngle); // sends distance and angle to a fileWriter 
 
                     Double mappedDistance = Utils.scale(rawDistance, 0, 200, 0, grid[0].length - 1);
                     Double mappedAngle = Utils.scale(rawAngle, 0, 180, 0, grid.length - 1);
                     
-                    distance = (int) Math.round(mappedDistance);
-                    angle = (int) Math.round(mappedAngle);
-                    
-                    rotate.setAngle(-rawAngle + 90); // rotates the bar to the angle of the servo motor
 
-                    grid[angle][distance].setStyle("-fx-background-color: #3cff00ff;"); // highlights objects positions within the grid
+                    int distance = (int) Math.round(mappedDistance);
+                    int angle = (int) Math.round(mappedAngle);
+
+                    // UI update on JavaFX main Thread
+                    Platform.runLater(() -> {
+                        distanceLabel.setText("Distance:\t" + rawDistance); 
+                        angleLabel.setText("Angle:\t" + rawAngle);
+                        grid[angle][distance].setStyle("-fx-background-color: #3cff00ff;"); // highlights objects positions within the grid
+                        rotate.setAngle(-rawAngle + 90); // rotates the bar to the angle of the servo motor
+                    });
                     
                 } catch (Exception e) {
                     e.printStackTrace();
