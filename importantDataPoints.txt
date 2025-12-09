@@ -33,3 +33,4 @@ recieved Distance of close proximity: 6.45cm  angle of 70
 recieved Distance of close proximity: 6.55cm  angle of 70
 recieved Distance of close proximity: 6.55cm  angle of 75
 recieved Distance of close proximity: 7.85cm  angle of 75
+recieved Distance of close proximity: 0.0cm  angle of 65

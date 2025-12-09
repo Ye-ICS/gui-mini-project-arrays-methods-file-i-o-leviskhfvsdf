@@ -24,11 +24,11 @@ public class App extends Application {
     }
 
     final static int serialDelay = 710; // millis
-    final static int radarSize = 200; // dimention of grid and image
+    final static int radarSize = 400; // dimention of grid and image
 
     final static int gridCol = 10;  // amount of cells in the grid
-    final static int gridRow = 10;
-    final static String userSerialPort = "COM13";   // serial port
+    final static int gridRow = 100;
+    final static String userSerialPort = "COM10";   // serial port
 
     Double rawDistance = 0.0;
     int rawAngle = 0;
@@ -79,10 +79,11 @@ public class App extends Application {
         imageStack.setAlignment(Pos.CENTER);
         
         Pane grid[][] = new Pane[gridCol][gridRow];
-        gridLayout.prefWidthProperty().bind(semiCircle.fitWidthProperty());
-        gridLayout.prefHeightProperty().bind(semiCircle.fitHeightProperty()); // gridlayouts hight should be imgages hight
+        
+        gridLayout.setPrefWidth(radarSize);
+        gridLayout.setPrefHeight(radarSize / 2); // gridlayouts hight should be half of its width
 
-        for (int y = 0; y < grid.length; y++) { // loop for 2d grid array. goes through each cell
+        for (int y = 0; y < grid.length; y++) { // loop for 2d grid array. goes through each cell (y is the angle and x is the distance)
             for (int x = 0; x < grid[0].length; x++) {
        
                 Pane tile = new Pane();
@@ -91,8 +92,9 @@ public class App extends Application {
                 tile.setStyle("-fx-background-color: #29302fff;");
                 tile.setOpacity(0.3); // to see the image behind the tiles
                 
-                tile.prefWidthProperty().bind(gridLayout.prefWidthProperty().divide(gridCol)); // tile should be gridLayouts width divided by amount of collumns
-                tile.prefHeightProperty().bind(gridLayout.prefHeightProperty().divide(gridRow));
+                // tiles width should be gridLayouts width divided by amount of collumns
+                tile.setPrefWidth(radarSize / gridCol);
+                tile.setPrefHeight((radarSize / 2) / gridRow);
             }
         }
         gridLayout.setAlignment(Pos.CENTER); // align grid with image
