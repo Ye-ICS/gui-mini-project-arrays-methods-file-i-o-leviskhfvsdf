@@ -1,0 +1,14 @@
+{
+    "java.project.referencedLibraries": [
+    "C:/Users/martinln/OneDrive - Limestone DSB/computer coding class g11/javafx-sdk-21.0.9/lib/*.jar",
+    "c:\\Users\\martinln\\OneDrive - Limestone DSB\\computer coding class g11\\Lib\\jSerialComm-2.11.3.jar"
+    ],
+    
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:/Program Files/Java/jdk-25/bin",
+            "default": true
+        }
+    ]
+}
